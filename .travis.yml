@@ -13,6 +13,7 @@ matrix:
 go_import_path: github.com/src-d/regression-borges
 
 script:
+  - make dependencies
   - make test-coverage
 
 before_deploy:
