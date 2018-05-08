@@ -3,6 +3,7 @@ PROJECT = regression-borges
 COMMANDS = cmd/regression
 
 GO_BUILD_ENV = CGO_ENABLED=0
+DOCKER_ORG = srcd
 
 # Including ci Makefile
 CI_REPOSITORY ?= https://github.com/src-d/ci.git
