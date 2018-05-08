@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     ln -s /usr/local/go/bin/go /usr/bin
 
-ADD build/regression_linux_amd64/regression /bin/
+ADD build/regression-borges_linux_amd64/regression /bin/
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/bin/regression", "latest", "remote:master"]
