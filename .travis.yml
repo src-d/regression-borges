@@ -13,6 +13,9 @@ matrix:
 go_import_path: github.com/src-d/regression-borges
 
 script:
+  - wget https://github.com/src-d/borges/releases/download/v0.14.0/borges_v0.14.0_linux_amd64.tar.gz -O /tmp/borges.tar.gz
+  - tar xf /tmp/borges.tar.gz borges_linux_amd64/borges
+  - export PATH=$PWD/borges_linux_amd64:$PATH
   - make dependencies
   - make test-coverage
 
