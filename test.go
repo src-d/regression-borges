@@ -183,9 +183,12 @@ func (t *Test) prepareBorges() error {
 
 	t.borges = make(map[string]*regression.Binary, len(t.config.Versions))
 	for _, version := range t.config.Versions {
-		b := NewBorges(t.config, version, releases)
-		err := b.Download()
+		b, err := NewBorges(t.config, version, releases)
 		if err != nil {
+			return err
+		}
+
+		if err := b.Download(); err != nil {
 			return err
 		}
 
