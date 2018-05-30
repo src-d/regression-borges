@@ -283,6 +283,12 @@
   revision = "42e9505b7e3741217aac7a8baec2c70359c758dd"
 
 [[projects]]
+  name = "gopkg.in/src-d/go-log.v1"
+  packages = ["."]
+  revision = "2ff6802d241cd249cba62ffca2a5e87ab8f19710"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "gopkg.in/src-d/regression-core.v0"
   packages = ["."]
@@ -297,6 +303,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "94ce38df696f84abd4cf38a4f09f41dee01d18c3c6343633c903d01af3aa97f8"
+  inputs-digest = "cf85f0a29996f59b99c21e0383b0f05317db429ba24cd952bd21b7704d2e4915"
   solver-name = "gps-cdcl"
   solver-version = 1

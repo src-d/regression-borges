@@ -5,8 +5,8 @@ import (
 
 	"github.com/src-d/regression-borges"
 
-	flags "github.com/jessevdk/go-flags"
-	"gopkg.in/src-d/go-log.v0"
+	"github.com/jessevdk/go-flags"
+	"gopkg.in/src-d/go-log.v1"
 	"gopkg.in/src-d/regression-core.v0"
 )
 
