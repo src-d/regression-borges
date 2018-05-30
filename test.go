@@ -19,7 +19,7 @@ type Test struct {
 }
 
 func NewTest(config regression.Config) (*Test, error) {
-	repos := regression.NewRepositories(config)
+	repos := regression.NewDefaultRepositories(config)
 	server := regression.NewGitServer(config)
 
 	return &Test{
@@ -64,7 +64,7 @@ func (t *Test) Run() error {
 			times = 1
 		}
 
-		for _, repo := range t.repos.Names(t.config.Complexity) {
+		for _, repo := range t.repos.Names() {
 			results[version][repo] = make([]*PackResult, times)
 			for i := 0; i < times; i++ {
 				// TODO: do not stop on errors
@@ -96,7 +96,7 @@ func (t *Test) GetResults() bool {
 		a := t.results[versions[i]]
 		b := t.results[versions[i+1]]
 
-		for _, repo := range t.repos.Names(t.config.Complexity) {
+		for _, repo := range t.repos.Names() {
 			fmt.Printf("## Repo %s ##\n", repo)
 
 			// TODO: add more options like discard the first run, do the media, etc
@@ -175,7 +175,7 @@ func (t *Test) prepareServer() error {
 
 func (t *Test) prepareBorges() error {
 	log.Infof("Preparing borges binaries")
-	releases := regression.NewReleases("src-d", "borges")
+	releases := regression.NewReleases("src-d", "borges", t.config.GitHubToken)
 
 	t.borges = make(map[string]*regression.Binary, len(t.config.Versions))
 	for _, version := range t.config.Versions {
