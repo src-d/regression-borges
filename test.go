@@ -3,7 +3,7 @@ package borges
 import (
 	"fmt"
 
-	"gopkg.in/src-d/go-log.v0"
+	"gopkg.in/src-d/go-log.v1"
 	"gopkg.in/src-d/regression-core.v0"
 )
 
@@ -57,10 +57,7 @@ func (t *Test) Run() error {
 			panic("borges not initialized. Was Prepare called?")
 		}
 
-		l, _ := log.New()
-		l = l.New(log.Fields{"version": version})
-
-		l.Infof("Running version tests")
+		log.With(log.Fields{"version": version}).Infof("Running version tests")
 
 		times := t.config.Repeat
 		if times < 1 {
@@ -121,7 +118,6 @@ func (t *Test) runTest(
 	repo string,
 ) (*PackResult, error) {
 	url := t.server.Url(repo)
-	l, _ := log.New()
 	log.Infof("Executing pack test for %s", repo)
 
 	pack, err := NewPack(borges.Path, url)
@@ -133,7 +129,7 @@ func (t *Test) runTest(
 	err = pack.Run()
 	out, _ := pack.Out()
 	if err != nil {
-		l.New(log.Fields{
+		log.With(log.Fields{
 			"repo":   repo,
 			"borges": borges.Path,
 			"url":    url,
@@ -156,7 +152,7 @@ func (t *Test) runTest(
 		return nil, err
 	}
 
-	l.New(log.Fields{
+	log.With(log.Fields{
 		"wall":     wall,
 		"memory":   rusage.Maxrss,
 		"fileSize": fileSize,
