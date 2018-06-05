@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if config.ShowRepos {
-		repos := regression.NewRepositories(config)
+		repos := regression.NewDefaultRepositories(config)
 		repos.ShowRepos()
 		os.Exit(0)
 	}
