@@ -27,6 +27,18 @@
   version = "v1.9.0"
 
 [[projects]]
+  name = "github.com/ghodss/yaml"
+  packages = ["."]
+  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/google/go-querystring"
   packages = ["query"]
@@ -174,8 +186,20 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "context",
+    "context/ctxhttp"
+  ]
   revision = "d11bb6cd8e3c4e60239c9cb20ef68586d74500d0"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal"
+  ]
+  revision = "1e0a3fa8ba9a5c9eb35c271780101fdaf1b205d7"
 
 [[projects]]
   branch = "master"
@@ -200,6 +224,20 @@
   version = "v0.3.0"
 
 [[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
+
+[[projects]]
   name = "gopkg.in/google/go-github.v15"
   packages = ["github"]
   revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
@@ -216,12 +254,6 @@
   ]
   revision = "df053870ae7070b0350624ba5a22161ba3796cc0"
   version = "v4.1.1"
-
-[[projects]]
-  name = "gopkg.in/src-d/go-errors.v0"
-  packages = ["."]
-  revision = "6f07baca276330431b44ece8ee84ac98167bc4ea"
-  version = "v0.1.0"
 
 [[projects]]
   name = "gopkg.in/src-d/go-errors.v1"
@@ -277,12 +309,6 @@
   version = "v4.3.1"
 
 [[projects]]
-  branch = "master"
-  name = "gopkg.in/src-d/go-log.v0"
-  packages = ["."]
-  revision = "42e9505b7e3741217aac7a8baec2c70359c758dd"
-
-[[projects]]
   name = "gopkg.in/src-d/go-log.v1"
   packages = ["."]
   revision = "2ff6802d241cd249cba62ffca2a5e87ab8f19710"
@@ -292,13 +318,19 @@
   branch = "master"
   name = "gopkg.in/src-d/regression-core.v0"
   packages = ["."]
-  revision = "5f9d0ff8ad936c401fd27e20dc51b68248095c1b"
+  revision = "280d21add1bc0d693ec6b356c90fdff62097214a"
 
 [[projects]]
   name = "gopkg.in/warnings.v0"
   packages = ["."]
   revision = "ec4a0fea49c7b46c2aeb0b51aac55779c607e52b"
   version = "v0.1.2"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"

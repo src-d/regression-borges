@@ -42,7 +42,12 @@ func main() {
 	}
 
 	if config.ShowRepos {
-		repos := regression.NewRepositories(config)
+		repos, err := regression.NewRepositories(config)
+		if err != nil {
+			log.Errorf(err, "Can not initialize repositories")
+			panic(err)
+		}
+
 		repos.ShowRepos()
 		os.Exit(0)
 	}
