@@ -5,10 +5,19 @@ import (
 )
 
 func NewToolBorges() regression.Tool {
+	steps := []regression.BuildStep{
+		{
+			Dir:     "",
+			Command: "make",
+			Args:    []string{"packages"},
+		},
+	}
+
 	return regression.Tool{
 		Name:        "borges",
 		GitURL:      "https://github.com/src-d/borges",
 		ProjectPath: "github.com/src-d/borges",
+		BuildSteps:  steps,
 	}
 }
 
