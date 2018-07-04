@@ -2,6 +2,7 @@ package borges
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"time"
@@ -116,6 +117,53 @@ type PackComparison struct {
 	Stime    float64
 	Utime    float64
 	FileSize float64
+}
+
+const (
+	Memory   = "memory"
+	Time     = "time"
+	FileSize = "file_size"
+)
+
+func (p *PackResult) SaveAllCSV(prefix string) error {
+	for _, s := range []string{Memory, Time, FileSize} {
+		if err := p.SaveCSV(s, fmt.Sprintf("%s%s.csv", prefix, s)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *PackResult) SaveCSV(series string, path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	if err := p.WriteCSV(series, f); err != nil {
+		_ = f.Close()
+		return err
+	}
+
+	return f.Close()
+}
+
+func (p *PackResult) WriteCSV(series string, w io.Writer) error {
+	switch series {
+	case Memory:
+		_, err := fmt.Fprintf(w, "%s\n%d\n", Memory, p.Memory)
+		return err
+	case Time:
+		_, err := fmt.Fprintf(w, "Wtime,Stime,Utime\n%d,%d,%d\n",
+			p.Wtime.Nanoseconds(), p.Stime.Nanoseconds(), p.Utime.Nanoseconds())
+		return err
+	case FileSize:
+		_, err := fmt.Fprintf(w, "%s\n%d\n", FileSize, p.FileSize)
+		return err
+	default:
+		return fmt.Errorf("unsupported series: %s", series)
+	}
 }
 
 func (p *PackResult) Compare(q *PackResult) PackComparison {
