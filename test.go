@@ -2,6 +2,8 @@ package borges
 
 import (
 	"fmt"
+	"math"
+	"time"
 
 	"gopkg.in/src-d/go-log.v1"
 	"gopkg.in/src-d/regression-core.v0"
@@ -89,10 +91,30 @@ func (t *Test) Run() error {
 }
 
 func (t *Test) GetResults() bool {
-	if len(t.config.Versions) < 2 {
-		panic("there should be at least two versions")
+	if len(t.config.Versions) < 1 {
+		panic("there should be at least one version")
 	}
 
+	ok := true
+	if len(t.config.Versions) > 1 {
+		ok = ok && t.CompareVersions()
+	}
+
+	t.SaveLatest()
+	return ok
+}
+
+func (t *Test) SaveLatest() {
+	version := t.config.Versions[len(t.config.Versions)-1]
+	for _, repo := range t.repos.Names() {
+		res := getAverageResult(t.results[version][repo])
+		if err := res.SaveAllCSV(fmt.Sprintf("plot_%s_", repo)); err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (t *Test) CompareVersions() bool {
 	versions := t.config.Versions
 	ok := true
 	for i, version := range versions[0 : len(versions)-1] {
@@ -103,14 +125,11 @@ func (t *Test) GetResults() bool {
 		for _, repo := range t.repos.Names() {
 			fmt.Printf("## Repo %s ##\n", repo)
 
-			// TODO: add more options like discard the first run, do the media, etc
-
-			repoA, repoB := getResultsSmaller(a[repo], b[repo])
+			repoA := getAverageResult(a[repo])
+			repoB := getAverageResult(b[repo])
 
 			c := repoA.ComparePrint(repoB, 10.0)
-			if !c {
-				ok = false
-			}
+			ok = ok && c
 		}
 	}
 
@@ -195,22 +214,25 @@ func (t *Test) prepareBorges() error {
 	return nil
 }
 
-// Get the runs with lower wall time
-func getResultsSmaller(
-	a []*PackResult,
-	b []*PackResult,
-) (*PackResult, *PackResult) {
-	repoA := a[0]
-	repoB := b[0]
-	for i := 1; i < len(a); i++ {
-		if a[i].Wtime < repoA.Wtime {
-			repoA = a[i]
-		}
+func getAverageResult(rs []*PackResult) *PackResult {
+	agg := &PackResult{}
 
-		if b[i].Wtime < repoB.Wtime {
-			repoB = b[i]
-		}
+	// Discard first for warmup
+	rs = rs[1:]
+
+	for _, r := range rs {
+		agg.Memory += r.Memory
+		agg.Wtime += r.Wtime
+		agg.Stime += r.Stime
+		agg.Utime += r.Utime
+		agg.FileSize = r.FileSize
 	}
 
-	return repoA, repoB
+	agg.Memory = int64(math.Round(float64(agg.Memory) / float64(len(rs))))
+	agg.Wtime = time.Duration(math.Round(float64(agg.Wtime) / float64(len(rs))))
+	agg.Stime = time.Duration(math.Round(float64(agg.Stime) / float64(len(rs))))
+	agg.Utime = time.Duration(math.Round(float64(agg.Utime) / float64(len(rs))))
+	agg.FileSize = int64(math.Round(float64(agg.FileSize) / float64(len(rs))))
+
+	return agg
 }

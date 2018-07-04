@@ -52,8 +52,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(args) < 2 {
-		log.Errorf(nil, "There should be at least two versions")
+	if len(args) < 1 {
+		log.Errorf(nil, "There should be at least one version")
 		os.Exit(1)
 	}
 
