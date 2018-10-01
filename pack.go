@@ -41,8 +41,9 @@ func (p *Pack) Run() error {
 
 	lArg := fmt.Sprintf("--file=%s", list)
 	dArg := fmt.Sprintf("--to=%s", dir)
+	tArg := fmt.Sprintf("--timeout=4h")
 
-	executor, err := regression.NewExecutor(p.binary, "pack", lArg, dArg)
+	executor, err := regression.NewExecutor(p.binary, "pack", lArg, dArg, tArg)
 	if err != nil {
 		return err
 	}
