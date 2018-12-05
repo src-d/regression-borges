@@ -39,11 +39,11 @@ func (p *Pack) Run() error {
 	}
 	defer os.RemoveAll(dir)
 
-	lArg := fmt.Sprintf("--file=%s", list)
-	dArg := fmt.Sprintf("--to=%s", dir)
+	lArg := fmt.Sprintf("%s", list)
+	dArg := fmt.Sprintf("--root-repositories-dir=%s", dir)
 	tArg := fmt.Sprintf("--timeout=4h")
 
-	executor, err := regression.NewExecutor(p.binary, "pack", lArg, dArg, tArg)
+	executor, err := regression.NewExecutor(p.binary, "pack", dArg, tArg, lArg)
 	if err != nil {
 		return err
 	}
