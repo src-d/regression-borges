@@ -24,9 +24,18 @@ This tool executes borges pack with several versions and compares times and reso
 The repositories and downloaded/built borges binaries are cached by default in "repos" and "binaries" repositories from the current directory.
 `
 
+type Options struct {
+	regression.Config
+
+	CSV bool `long:"csv" description:"save csv files with last result"`
+}
+
 func main() {
-	config := regression.NewConfig()
-	parser := flags.NewParser(&config, flags.Default)
+	options := Options{
+		Config: regression.NewConfig(),
+	}
+
+	parser := flags.NewParser(&options, flags.Default)
 	parser.LongDescription = description
 
 	args, err := parser.Parse()
@@ -40,6 +49,8 @@ func main() {
 		log.Errorf(err, "Could not parse arguments")
 		os.Exit(1)
 	}
+
+	config := options.Config
 
 	if config.ShowRepos {
 		repos, err := regression.NewRepositories(config)
@@ -77,6 +88,9 @@ func main() {
 	}
 
 	res := test.GetResults()
+	if res && options.CSV {
+		test.SaveLatestCSV()
+	}
 
 	err = test.Stop()
 	if err != nil {
