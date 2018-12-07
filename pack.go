@@ -92,7 +92,7 @@ func (p *Pack) Result() (*PackResult, error) {
 	}
 
 	packResult := &PackResult{
-		Memory:   rusage.Maxrss,
+		Memory:   rusage.Maxrss * 1024,
 		Wtime:    wall,
 		Stime:    time.Duration(rusage.Stime.Nano()),
 		Utime:    time.Duration(rusage.Utime.Nano()),
@@ -104,12 +104,12 @@ func (p *Pack) Result() (*PackResult, error) {
 }
 
 type PackResult struct {
-	Memory   int64
+	Memory   int64 // bytes
 	Wtime    time.Duration
 	Stime    time.Duration
 	Utime    time.Duration
 	Files    []os.FileInfo
-	FileSize int64
+	FileSize int64 // bytes
 }
 
 type PackComparison struct {
@@ -153,14 +153,14 @@ func (p *PackResult) SaveCSV(series string, path string) error {
 func (p *PackResult) WriteCSV(series string, w io.Writer) error {
 	switch series {
 	case Memory:
-		_, err := fmt.Fprintf(w, "%s\n%d\n", Memory, p.Memory)
+		_, err := fmt.Fprintf(w, "%s\n%f\n", Memory, toMiB(p.Memory))
 		return err
 	case Time:
-		_, err := fmt.Fprintf(w, "Wtime,Stime,Utime\n%d,%d,%d\n",
-			p.Wtime.Nanoseconds(), p.Stime.Nanoseconds(), p.Utime.Nanoseconds())
+		_, err := fmt.Fprintf(w, "Wtime,Stime,Utime\n%f,%f,%f\n",
+			p.Wtime.Seconds(), p.Stime.Seconds(), p.Utime.Seconds())
 		return err
 	case FileSize:
-		_, err := fmt.Fprintf(w, "%s\n%d\n", FileSize, p.FileSize)
+		_, err := fmt.Fprintf(w, "%s\n%f\n", FileSize, toMiB(p.FileSize))
 		return err
 	default:
 		return fmt.Errorf("unsupported series: %s", series)
@@ -177,7 +177,13 @@ func (p *PackResult) Compare(q *PackResult) PackComparison {
 	}
 }
 
-var compareFormat = "%s: %v -> %v (%v), %v\n"
+const (
+	compareFormat = "%s: %v -> %v (%v), %v\n"
+)
+
+func toMiB(i int64) float64 {
+	return float64(i) / float64(1024*1024)
+}
 
 func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
 	ok := true
@@ -188,8 +194,8 @@ func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
 	}
 	fmt.Printf(compareFormat,
 		"Memory",
-		p.Memory,
-		q.Memory,
+		toMiB(p.Memory),
+		toMiB(q.Memory),
 		c.Memory,
 		allowance > c.Memory,
 	)
@@ -205,9 +211,6 @@ func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
 		allowance > c.Wtime,
 	)
 
-	// if c.Stime > allowance {
-	// 	ok = false
-	// }
 	fmt.Printf(compareFormat,
 		"Stime",
 		p.Stime,
@@ -216,9 +219,6 @@ func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
 		allowance > c.Stime,
 	)
 
-	// if c.Utime > allowance {
-	// 	ok = false
-	// }
 	fmt.Printf(compareFormat,
 		"Utime",
 		p.Utime,
@@ -232,8 +232,8 @@ func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
 	}
 	fmt.Printf(compareFormat,
 		"FileSize",
-		p.FileSize,
-		q.FileSize,
+		toMiB(p.FileSize),
+		toMiB(q.FileSize),
 		c.FileSize,
 		allowance > c.FileSize,
 	)
