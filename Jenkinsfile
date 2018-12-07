@@ -37,7 +37,7 @@ pipeline {
     }
     stage('Run') {
       steps {
-        sh './regression --complexity=0 latest remote:master || true'
+        sh './regression --complexity=0 --csv remote:master || true'
       }
     }
     stage('Plot') {
