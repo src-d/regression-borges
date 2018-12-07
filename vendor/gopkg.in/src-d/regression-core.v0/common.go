@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 )
 
-func createTempDir() (string, error) {
+// CreateTempDir creates a new temporary directory in the default temp dir.
+func CreateTempDir() (string, error) {
 	dir, err := ioutil.TempDir("", "regression-")
 	if err != nil {
 		return "", err
@@ -16,7 +17,9 @@ func createTempDir() (string, error) {
 	return dir, nil
 }
 
-func recursiveCopy(src, dst string) error {
+// RecursiveCopy copies a directory to a destination path. It creates all
+// needed directories if destination path does not exist.
+func RecursiveCopy(src, dst string) error {
 	stat, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -37,13 +40,13 @@ func recursiveCopy(src, dst string) error {
 			srcPath := filepath.Join(src, file.Name())
 			dstPath := filepath.Join(dst, file.Name())
 
-			err = recursiveCopy(srcPath, dstPath)
+			err = RecursiveCopy(srcPath, dstPath)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
-		err = copyFile(src, dst, stat.Mode())
+		err = CopyFile(src, dst, stat.Mode())
 		if err != nil {
 			return err
 		}
@@ -52,7 +55,8 @@ func recursiveCopy(src, dst string) error {
 	return nil
 }
 
-func copyFile(source, destination string, mode os.FileMode) error {
+// CopyFile makes a file copy with the specified permission.
+func CopyFile(source, destination string, mode os.FileMode) error {
 	exist, err := fileExist(source)
 	if err != nil {
 		return err

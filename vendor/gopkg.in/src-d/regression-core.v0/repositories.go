@@ -130,7 +130,7 @@ func (r *Repositories) Path() string {
 	return r.config.RepositoriesCache
 }
 
-// Names returns the names of repositories withing concurrency level.
+// Names returns the names of repositories within concurrency level.
 func (r *Repositories) Names() []string {
 	names := make([]string, 0, len(r.Repos))
 	for _, repo := range r.Repos {
@@ -145,7 +145,7 @@ func (r *Repositories) Names() []string {
 // LinksDir returns a path of a temporary directory with repos within
 // the config complexity.
 func (r *Repositories) LinksDir() (string, error) {
-	dir, err := createTempDir()
+	dir, err := CreateTempDir()
 	if err != nil {
 		return "", err
 	}
@@ -154,7 +154,7 @@ func (r *Repositories) LinksDir() (string, error) {
 		from := filepath.Join(r.config.RepositoriesCache, name)
 		to := filepath.Join(dir, name)
 
-		err = recursiveCopy(from, to)
+		err = RecursiveCopy(from, to)
 		if err != nil {
 			os.RemoveAll(dir)
 			return "", err

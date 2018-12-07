@@ -105,7 +105,7 @@ func (b *Binary) Download() error {
 }
 
 func (b *Binary) downloadRelease() error {
-	tmpDir, err := createTempDir()
+	tmpDir, err := CreateTempDir()
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (b *Binary) downloadRelease() error {
 	defer os.RemoveAll(path)
 
 	binary := filepath.Join(path, b.dirName(), b.tool.Name)
-	err = copyFile(binary, b.cacheName(), 0755)
+	err = CopyFile(binary, b.cacheName(), 0755)
 
 	return err
 }
