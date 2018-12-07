@@ -100,11 +100,10 @@ func (t *Test) GetResults() bool {
 		ok = ok && t.CompareVersions()
 	}
 
-	t.SaveLatest()
 	return ok
 }
 
-func (t *Test) SaveLatest() {
+func (t *Test) SaveLatestCSV() {
 	version := t.config.Versions[len(t.config.Versions)-1]
 	for _, repo := range t.repos.Names() {
 		res := getAverageResult(t.results[version][repo])
