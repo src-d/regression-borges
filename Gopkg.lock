@@ -386,11 +386,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:17a6f4c04991e7d61714d20e1546b2e910123496c0273e5dde29a88871e9ee11"
+  digest = "1:e731885b8bf912adf796ec8b2a6e40c3151756397e97975d3de11fa9ca66fc57"
   name = "gopkg.in/src-d/regression-core.v0"
   packages = ["."]
   pruneopts = "UT"
-  revision = "bf1406a1d4288a822d345edd6ec420c122ac0cae"
+  revision = "fb0c079c6335264b09a7e2c401220001788730a2"
 
 [[projects]]
   digest = "1:78d374b493e747afa9fbb2119687e3740a7fb8d0ebabddfef0a012593aaecbb3"
