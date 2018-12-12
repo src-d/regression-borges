@@ -2,8 +2,6 @@ package borges
 
 import (
 	"fmt"
-	"math"
-	"time"
 
 	"gopkg.in/src-d/go-log.v1"
 	"gopkg.in/src-d/regression-core.v0"
@@ -106,11 +104,24 @@ func (t *Test) GetResults() bool {
 func (t *Test) SaveLatestCSV() {
 	version := t.config.Versions[len(t.config.Versions)-1]
 	for _, repo := range t.repos.Names() {
-		res := getAverageResult(t.results[version][repo])
+		res := average(t.results[version][repo])
 		if err := res.SaveAllCSV(fmt.Sprintf("plot_%s_", repo)); err != nil {
 			panic(err)
 		}
 	}
+}
+
+func average(pr []*PackResult) *regression.Result {
+	if len(pr) == 0 {
+		return nil
+	}
+
+	results := make([]*regression.Result, 0, len(pr))
+	for _, r := range pr {
+		results = append(results, r.Result)
+	}
+
+	return regression.Average(results)
 }
 
 func (t *Test) CompareVersions() bool {
@@ -124,8 +135,11 @@ func (t *Test) CompareVersions() bool {
 		for _, repo := range t.repos.Names() {
 			fmt.Printf("## Repo %s ##\n", repo)
 
-			repoA := getAverageResult(a[repo])
-			repoB := getAverageResult(b[repo])
+			repoA := a[repo][0]
+			repoB := b[repo][0]
+
+			repoA.Result = average(a[repo])
+			repoB.Result = average(b[repo])
 
 			c := repoA.ComparePrint(repoB, 10.0)
 			ok = ok && c
@@ -211,27 +225,4 @@ func (t *Test) prepareBorges() error {
 	}
 
 	return nil
-}
-
-func getAverageResult(rs []*PackResult) *PackResult {
-	agg := &PackResult{}
-
-	// Discard first for warmup
-	rs = rs[1:]
-
-	for _, r := range rs {
-		agg.Memory += r.Memory
-		agg.Wtime += r.Wtime
-		agg.Stime += r.Stime
-		agg.Utime += r.Utime
-		agg.FileSize = r.FileSize
-	}
-
-	agg.Memory = int64(math.Round(float64(agg.Memory) / float64(len(rs))))
-	agg.Wtime = time.Duration(math.Round(float64(agg.Wtime) / float64(len(rs))))
-	agg.Stime = time.Duration(math.Round(float64(agg.Stime) / float64(len(rs))))
-	agg.Utime = time.Duration(math.Round(float64(agg.Utime) / float64(len(rs))))
-	agg.FileSize = int64(math.Round(float64(agg.FileSize) / float64(len(rs))))
-
-	return agg
 }

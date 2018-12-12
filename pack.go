@@ -2,7 +2,6 @@ package borges
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"time"
@@ -92,10 +91,12 @@ func (p *Pack) Result() (*PackResult, error) {
 	}
 
 	packResult := &PackResult{
-		Memory:   rusage.Maxrss * 1024,
-		Wtime:    wall,
-		Stime:    time.Duration(rusage.Stime.Nano()),
-		Utime:    time.Duration(rusage.Utime.Nano()),
+		Result: &regression.Result{
+			Memory: rusage.Maxrss * 1024,
+			Wtime:  wall,
+			Stime:  time.Duration(rusage.Stime.Nano()),
+			Utime:  time.Duration(rusage.Utime.Nano()),
+		},
 		Files:    p.files,
 		FileSize: size,
 	}
@@ -104,136 +105,38 @@ func (p *Pack) Result() (*PackResult, error) {
 }
 
 type PackResult struct {
-	Memory   int64 // bytes
-	Wtime    time.Duration
-	Stime    time.Duration
-	Utime    time.Duration
+	*regression.Result
 	Files    []os.FileInfo
 	FileSize int64 // bytes
 }
 
+func NewPackResult() *PackResult {
+	return &PackResult{Result: new(regression.Result)}
+}
+
 type PackComparison struct {
-	Memory   float64
-	Wtime    float64
-	Stime    float64
-	Utime    float64
 	FileSize float64
 }
 
-const (
-	Memory   = "memory"
-	Time     = "time"
-	FileSize = "file_size"
-)
-
-func (p *PackResult) SaveAllCSV(prefix string) error {
-	for _, s := range []string{Memory, Time, FileSize} {
-		if err := p.SaveCSV(s, fmt.Sprintf("%s%s.csv", prefix, s)); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (p *PackResult) SaveCSV(series string, path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-
-	if err := p.WriteCSV(series, f); err != nil {
-		_ = f.Close()
-		return err
-	}
-
-	return f.Close()
-}
-
-func (p *PackResult) WriteCSV(series string, w io.Writer) error {
-	switch series {
-	case Memory:
-		_, err := fmt.Fprintf(w, "%s\n%f\n", Memory, toMiB(p.Memory))
-		return err
-	case Time:
-		_, err := fmt.Fprintf(w, "Wtime,Stime,Utime\n%f,%f,%f\n",
-			p.Wtime.Seconds(), p.Stime.Seconds(), p.Utime.Seconds())
-		return err
-	case FileSize:
-		_, err := fmt.Fprintf(w, "%s\n%f\n", FileSize, toMiB(p.FileSize))
-		return err
-	default:
-		return fmt.Errorf("unsupported series: %s", series)
-	}
-}
+const FileSize = "file_size"
 
 func (p *PackResult) Compare(q *PackResult) PackComparison {
 	return PackComparison{
-		Memory:   percent(p.Memory, q.Memory),
-		Wtime:    percent(int64(p.Wtime), int64(q.Wtime)),
-		Stime:    percent(int64(p.Stime), int64(q.Stime)),
-		Utime:    percent(int64(p.Utime), int64(q.Utime)),
 		FileSize: percent(p.FileSize, q.FileSize),
 	}
 }
 
-const (
-	compareFormat = "%s: %v -> %v (%v), %v\n"
-)
-
-func toMiB(i int64) float64 {
-	return float64(i) / float64(1024*1024)
-}
-
 func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
-	ok := true
+	ok := p.Result.ComparePrint(q.Result, allowance)
 	c := p.Compare(q)
-
-	if c.Memory > allowance {
-		ok = false
-	}
-	fmt.Printf(compareFormat,
-		"Memory",
-		toMiB(p.Memory),
-		toMiB(q.Memory),
-		c.Memory,
-		allowance > c.Memory,
-	)
-
-	if c.Wtime > allowance {
-		ok = false
-	}
-	fmt.Printf(compareFormat,
-		"Wtime",
-		p.Wtime,
-		q.Wtime,
-		c.Wtime,
-		allowance > c.Wtime,
-	)
-
-	fmt.Printf(compareFormat,
-		"Stime",
-		p.Stime,
-		q.Stime,
-		c.Stime,
-		allowance > c.Stime,
-	)
-
-	fmt.Printf(compareFormat,
-		"Utime",
-		p.Utime,
-		q.Utime,
-		c.Utime,
-		allowance > c.Utime,
-	)
 
 	if c.FileSize > allowance {
 		ok = false
 	}
-	fmt.Printf(compareFormat,
+	fmt.Printf(regression.CompareFormat,
 		"FileSize",
-		toMiB(p.FileSize),
-		toMiB(q.FileSize),
+		regression.ToMiB(p.FileSize),
+		regression.ToMiB(q.FileSize),
 		c.FileSize,
 		allowance > c.FileSize,
 	)
