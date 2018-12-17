@@ -19,6 +19,7 @@ The binary will be downloaded.
 built automatically.
 * local:fix/some-bug - tag or branch from the repository in the current directory.
 The binary will be built.
+* local:HEAD - current state of the repository. Binary is built.
 * pull:266 - code from pull request #266 from borges repo. Binary is built.
 * /path/to/borges - a borges binary built locally.
 
@@ -37,6 +38,7 @@ Application Options:
   -n, --repeat=     Number of times a test is run (default: 3) [$REG_REPEAT]
       --show-repos  List available repositories to test
   -t, --token=      Token used to connect to the API [$REG_TOKEN]
+      --csv         save csv files with last result
 
 Help Options:
   -h, --help        Show this help message
