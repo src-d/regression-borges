@@ -89,10 +89,42 @@ func (t *Test) Run() error {
 }
 
 func (t *Test) GetResults() bool {
-	if len(t.config.Versions) < 2 {
-		panic("there should be at least two versions")
+	if len(t.config.Versions) < 1 {
+		panic("there should be at least one version")
 	}
 
+	ok := true
+	if len(t.config.Versions) > 1 {
+		ok = ok && t.CompareVersions()
+	}
+
+	return ok
+}
+
+func (t *Test) SaveLatestCSV() {
+	version := t.config.Versions[len(t.config.Versions)-1]
+	for _, repo := range t.repos.Names() {
+		res := average(t.results[version][repo])
+		if err := res.SaveAllCSV(fmt.Sprintf("plot_%s_", repo)); err != nil {
+			panic(err)
+		}
+	}
+}
+
+func average(pr []*PackResult) *regression.Result {
+	if len(pr) == 0 {
+		return nil
+	}
+
+	results := make([]*regression.Result, 0, len(pr))
+	for _, r := range pr {
+		results = append(results, r.Result)
+	}
+
+	return regression.Average(results)
+}
+
+func (t *Test) CompareVersions() bool {
 	versions := t.config.Versions
 	ok := true
 	for i, version := range versions[0 : len(versions)-1] {
@@ -103,14 +135,14 @@ func (t *Test) GetResults() bool {
 		for _, repo := range t.repos.Names() {
 			fmt.Printf("## Repo %s ##\n", repo)
 
-			// TODO: add more options like discard the first run, do the media, etc
+			repoA := a[repo][0]
+			repoB := b[repo][0]
 
-			repoA, repoB := getResultsSmaller(a[repo], b[repo])
+			repoA.Result = average(a[repo])
+			repoB.Result = average(b[repo])
 
 			c := repoA.ComparePrint(repoB, 10.0)
-			if !c {
-				ok = false
-			}
+			ok = ok && c
 		}
 	}
 
@@ -193,24 +225,4 @@ func (t *Test) prepareBorges() error {
 	}
 
 	return nil
-}
-
-// Get the runs with lower wall time
-func getResultsSmaller(
-	a []*PackResult,
-	b []*PackResult,
-) (*PackResult, *PackResult) {
-	repoA := a[0]
-	repoB := b[0]
-	for i := 1; i < len(a); i++ {
-		if a[i].Wtime < repoA.Wtime {
-			repoA = a[i]
-		}
-
-		if b[i].Wtime < repoB.Wtime {
-			repoB = b[i]
-		}
-	}
-
-	return repoA, repoB
 }

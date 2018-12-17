@@ -38,10 +38,11 @@ func (p *Pack) Run() error {
 	}
 	defer os.RemoveAll(dir)
 
-	lArg := fmt.Sprintf("--file=%s", list)
-	dArg := fmt.Sprintf("--to=%s", dir)
+	lArg := fmt.Sprintf("%s", list)
+	dArg := fmt.Sprintf("--root-repositories-dir=%s", dir)
+	tArg := fmt.Sprintf("--timeout=4h")
 
-	executor, err := regression.NewExecutor(p.binary, "pack", lArg, dArg)
+	executor, err := regression.NewExecutor(p.binary, "pack", dArg, tArg, lArg)
 	if err != nil {
 		return err
 	}
@@ -90,10 +91,12 @@ func (p *Pack) Result() (*PackResult, error) {
 	}
 
 	packResult := &PackResult{
-		Memory:   rusage.Maxrss,
-		Wtime:    wall,
-		Stime:    time.Duration(rusage.Stime.Nano()),
-		Utime:    time.Duration(rusage.Utime.Nano()),
+		Result: &regression.Result{
+			Memory: rusage.Maxrss * 1024,
+			Wtime:  wall,
+			Stime:  time.Duration(rusage.Stime.Nano()),
+			Utime:  time.Duration(rusage.Utime.Nano()),
+		},
 		Files:    p.files,
 		FileSize: size,
 	}
@@ -102,89 +105,38 @@ func (p *Pack) Result() (*PackResult, error) {
 }
 
 type PackResult struct {
-	Memory   int64
-	Wtime    time.Duration
-	Stime    time.Duration
-	Utime    time.Duration
+	*regression.Result
 	Files    []os.FileInfo
-	FileSize int64
+	FileSize int64 // bytes
+}
+
+func NewPackResult() *PackResult {
+	return &PackResult{Result: new(regression.Result)}
 }
 
 type PackComparison struct {
-	Memory   float64
-	Wtime    float64
-	Stime    float64
-	Utime    float64
 	FileSize float64
 }
 
+const FileSize = "file_size"
+
 func (p *PackResult) Compare(q *PackResult) PackComparison {
 	return PackComparison{
-		Memory:   percent(p.Memory, q.Memory),
-		Wtime:    percent(int64(p.Wtime), int64(q.Wtime)),
-		Stime:    percent(int64(p.Stime), int64(q.Stime)),
-		Utime:    percent(int64(p.Utime), int64(q.Utime)),
 		FileSize: percent(p.FileSize, q.FileSize),
 	}
 }
 
-var compareFormat = "%s: %v -> %v (%v), %v\n"
-
 func (p *PackResult) ComparePrint(q *PackResult, allowance float64) bool {
-	ok := true
+	ok := p.Result.ComparePrint(q.Result, allowance)
 	c := p.Compare(q)
-
-	if c.Memory > allowance {
-		ok = false
-	}
-	fmt.Printf(compareFormat,
-		"Memory",
-		p.Memory,
-		q.Memory,
-		c.Memory,
-		allowance > c.Memory,
-	)
-
-	if c.Wtime > allowance {
-		ok = false
-	}
-	fmt.Printf(compareFormat,
-		"Wtime",
-		p.Wtime,
-		q.Wtime,
-		c.Wtime,
-		allowance > c.Wtime,
-	)
-
-	// if c.Stime > allowance {
-	// 	ok = false
-	// }
-	fmt.Printf(compareFormat,
-		"Stime",
-		p.Stime,
-		q.Stime,
-		c.Stime,
-		allowance > c.Stime,
-	)
-
-	// if c.Utime > allowance {
-	// 	ok = false
-	// }
-	fmt.Printf(compareFormat,
-		"Utime",
-		p.Utime,
-		q.Utime,
-		c.Utime,
-		allowance > c.Utime,
-	)
 
 	if c.FileSize > allowance {
 		ok = false
 	}
-	fmt.Printf(compareFormat,
+	fmt.Printf(regression.CompareFormat,
 		"FileSize",
-		p.FileSize,
-		q.FileSize,
+		regression.ToMiB(p.FileSize),
+		regression.ToMiB(q.FileSize),
 		c.FileSize,
 		allowance > c.FileSize,
 	)

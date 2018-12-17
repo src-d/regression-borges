@@ -18,15 +18,25 @@ This tool executes borges pack with several versions and compares times and reso
 * latest - latest release from github. The binary will be downloaded.
 * remote:master - any tag or branch from borges repository. The binary will be built automatically.
 * local:fix/some-bug - tag or branch from the repository in the current directory. The binary will be built.
+* local:HEAD - current state of the repository. Binary is built.
 * pull:266 - code from pull request #266 from borges repo. Binary is built.
 * /path/to/borges - a borges binary built locally.
 
 The repositories and downloaded/built borges binaries are cached by default in "repos" and "binaries" repositories from the current directory.
 `
 
+type Options struct {
+	regression.Config
+
+	CSV bool `long:"csv" description:"save csv files with last result"`
+}
+
 func main() {
-	config := regression.NewConfig()
-	parser := flags.NewParser(&config, flags.Default)
+	options := Options{
+		Config: regression.NewConfig(),
+	}
+
+	parser := flags.NewParser(&options, flags.Default)
 	parser.LongDescription = description
 
 	args, err := parser.Parse()
@@ -41,6 +51,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	config := options.Config
+
 	if config.ShowRepos {
 		repos, err := regression.NewRepositories(config)
 		if err != nil {
@@ -52,8 +64,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(args) < 2 {
-		log.Errorf(nil, "There should be at least two versions")
+	if len(args) < 1 {
+		log.Errorf(nil, "There should be at least one version")
 		os.Exit(1)
 	}
 
@@ -77,6 +89,9 @@ func main() {
 	}
 
 	res := test.GetResults()
+	if res && options.CSV {
+		test.SaveLatestCSV()
+	}
 
 	err = test.Stop()
 	if err != nil {
